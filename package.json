@@ -1,6 +1,6 @@
 {
   "name": "itsovertime",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cron for AI agents",
   "type": "module",
   "bin": {
