@@ -1,0 +1,33 @@
+name: Dev Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  dev-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Set dev version
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          BASE=$(node -p "require('./package.json').version")
+          npm version "${BASE}-dev.${SHA}" --no-git-tag-version
+
+      - run: npm publish --tag dev
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
