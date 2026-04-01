@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { homedir } from "node:os";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import cron from "node-cron";
 import type { JobConfig, Credentials } from "./config.js";
 import { runJob, type JobResult } from "./runner.js";
@@ -109,7 +110,8 @@ export class Scheduler {
 
   constructor(
     private configs: JobConfig[],
-    private credentials: Credentials = {}
+    private credentials: Credentials = {},
+    private configPath?: string
   ) {
     this.history = loadHistory();
 
@@ -167,6 +169,43 @@ export class Scheduler {
 
   async runNow(name: string): Promise<void> {
     await this.executeJob(name);
+  }
+
+  deleteJob(name: string): boolean {
+    const state = this.jobs.get(name);
+    if (!state || state.status === "running") return false;
+
+    // Stop cron task
+    const task = this.tasks.get(name);
+    if (task) {
+      task.stop();
+      this.tasks.delete(name);
+    }
+
+    // Remove from state
+    this.jobs.delete(name);
+    this.configs = this.configs.filter((c) => c.name !== name);
+
+    // Remove from history
+    delete this.history[name];
+    saveHistory(this.history);
+
+    // Update overtime.yml
+    if (this.configPath) {
+      try {
+        const raw = readFileSync(this.configPath, "utf-8");
+        const doc = parseYaml(raw);
+        if (doc?.jobs) {
+          doc.jobs = doc.jobs.filter((j: { name: string }) => j.name !== name);
+          writeFileSync(this.configPath, stringifyYaml(doc));
+        }
+      } catch {
+        // Config update failed — job is still removed from runtime
+      }
+    }
+
+    this.notify();
+    return true;
   }
 
   private async executeJob(name: string): Promise<void> {

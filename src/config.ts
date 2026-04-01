@@ -79,7 +79,7 @@ function resolveEnvVars(text: string): string {
   return text.replace(/\$\{(\w+)\}/g, (_, name) => process.env[name] ?? "");
 }
 
-export function loadConfig(configPath?: string): OvertimeConfig {
+export function loadConfig(configPath?: string): OvertimeConfig & { configPath: string } {
   const candidates = configPath
     ? [configPath]
     : ["overtime.yml", "overtime.yaml", ".overtime.yml"];
@@ -137,5 +137,5 @@ export function loadConfig(configPath?: string): OvertimeConfig {
     job.schedule = cron;
   }
 
-  return config;
+  return { ...config, configPath: found };
 }

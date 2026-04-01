@@ -104,7 +104,7 @@ function StatusBar({ mode }: { mode: "table" | "output" }) {
   return (
     <Box marginTop={1}>
       <Text dimColor>
-        [↑↓] select  [r] run  [enter] view output  [q] quit
+        [↑↓] select  [r] run  [d] delete  [enter] view output  [q] quit
       </Text>
     </Box>
   );
@@ -141,10 +141,12 @@ function OutputView({ job }: { job: JobState }) {
 export function Dashboard({
   jobs,
   onRunJob,
+  onDeleteJob,
   onQuit,
 }: {
   jobs: JobState[];
   onRunJob: (name: string) => void;
+  onDeleteJob: (name: string) => void;
   onQuit: () => void;
 }) {
   const { exit } = useApp();
@@ -174,6 +176,12 @@ export function Dashboard({
       const job = jobs[selectedIndex];
       if (job && job.status !== "running") {
         onRunJob(job.config.name);
+      }
+    } else if (input === "d") {
+      const job = jobs[selectedIndex];
+      if (job && job.status !== "running") {
+        onDeleteJob(job.config.name);
+        setSelectedIndex((i) => Math.min(i, jobs.length - 2));
       }
     } else if (key.return) {
       setMode("output");

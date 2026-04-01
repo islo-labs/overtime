@@ -18,7 +18,7 @@ program
     const opts = cmd.optsWithGlobals();
     const config = loadConfig(opts.config);
     const credentials = loadCredentials();
-    const scheduler = new Scheduler(config.jobs, credentials);
+    const scheduler = new Scheduler(config.jobs, credentials, config.configPath);
 
     const { render } = await import("ink");
     const React = await import("react");

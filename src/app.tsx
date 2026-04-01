@@ -34,9 +34,16 @@ export function App({ scheduler }: { scheduler: Scheduler }) {
     [scheduler]
   );
 
+  const handleDeleteJob = useCallback(
+    (name: string) => {
+      scheduler.deleteJob(name);
+    },
+    [scheduler]
+  );
+
   const handleQuit = useCallback(() => {
     scheduler.stop();
   }, [scheduler]);
 
-  return <Dashboard jobs={jobs} onRunJob={handleRunJob} onQuit={handleQuit} />;
+  return <Dashboard jobs={jobs} onRunJob={handleRunJob} onDeleteJob={handleDeleteJob} onQuit={handleQuit} />;
 }
