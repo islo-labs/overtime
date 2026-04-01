@@ -30,6 +30,7 @@ interface HistoryEntry {
   durationMs: number;
   success: boolean;
   cost?: number;
+  sessionId?: string;
 }
 
 function loadHistory(): Record<string, HistoryEntry> {
@@ -171,6 +172,11 @@ export class Scheduler {
     await this.executeJob(name);
   }
 
+  getSessionId(name: string): string | undefined {
+    const state = this.jobs.get(name);
+    return state?.lastResult?.sessionId ?? this.history[name]?.sessionId;
+  }
+
   deleteJob(name: string): boolean {
     const state = this.jobs.get(name);
     if (!state || state.status === "running") return false;
@@ -235,6 +241,7 @@ export class Scheduler {
         durationMs: result.durationMs,
         success: result.success,
         cost: result.cost,
+        sessionId: result.sessionId,
       };
       saveHistory(this.history);
       saveJobLog(name, result);

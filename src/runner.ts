@@ -8,6 +8,7 @@ export interface JobResult {
   durationMs: number;
   exitCode: number | null;
   cost?: number;
+  sessionId?: string;
 }
 
 export function runJob(
@@ -61,11 +62,13 @@ export function runJob(
       // Try to parse JSON output for metadata
       let output = stdout;
       let cost: number | undefined;
+      let sessionId: string | undefined;
 
       try {
         const parsed = JSON.parse(stdout);
         output = parsed.result ?? parsed.content ?? stdout;
         cost = parsed.cost_usd ?? parsed.cost;
+        sessionId = parsed.session_id ?? parsed.sessionId;
       } catch {
         // Not JSON, use raw stdout
       }
@@ -77,6 +80,7 @@ export function runJob(
         durationMs,
         exitCode: code,
         cost,
+        sessionId,
       });
     });
 

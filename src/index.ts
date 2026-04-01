@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { program } from "commander";
 import { loadConfig, loadCredentials } from "./config.js";
 import { Scheduler } from "./scheduler.js";
@@ -24,8 +25,20 @@ program
     const React = await import("react");
     const { App } = await import("./app.js");
 
+    const onResume = (sessionId: string, jobName: string) => {
+      scheduler.stop().then(() => {
+        console.log(`\nResuming session for "${jobName}"...\n`);
+        spawnSync("claude", ["--resume", sessionId], {
+          stdio: "inherit",
+          cwd: process.cwd(),
+          env: process.env,
+        });
+        process.exit(0);
+      });
+    };
+
     const { unmount, waitUntilExit } = render(
-      React.createElement(App, { scheduler })
+      React.createElement(App, { scheduler, onResume })
     );
 
     const shutdown = async () => {

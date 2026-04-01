@@ -58,15 +58,16 @@ jobs:
 ```
 $ npx overtime
 
-┌─ overtime ──────────────────────────────────────────┐
-│                                                     │
-│  JOB           SCHEDULE        STATUS    NEXT RUN   │
-│  pr-review     every hour      idle      in 22m     │
-│  dep-updates   Mon at 2am     ✓ done    in 4d 11h  │
-│  bug-triage    every 4 hours   ⟳ running in 1h 05m  │
-│                                                     │
-│  [↑↓] select  [r] run  [enter] view output  [q] quit│
-└─────────────────────────────────────────────────────┘
+┌─ overtime ────────────────────────────────────────────────────┐
+│                                                               │
+│  JOB           SCHEDULE        STATUS    LAST RUN   NEXT RUN  │
+│  pr-review     every hour      idle      3h ago     in 22m    │
+│  dep-updates   Mon at 2am     ✓ done    1d ago     in 4d 11h │
+│  bug-triage    every 4 hours   ⟳ running -          in 1h 05m │
+│                                                               │
+│  [↑↓] select  [r] run  [s] resume session  [d] delete        │
+│  [enter] output  [q] quit                                     │
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ## Getting started
@@ -76,6 +77,12 @@ npx overtime init           # connect GitHub, Linear, Slack — creates overtime
 npx overtime                # start the dashboard
 npx overtime run pr-review  # test a single job
 ```
+
+## Resume sessions
+
+When a job finishes, press `s` to drop into the Claude session where it left off. This lets you inspect what the agent did, ask follow-up questions, or continue the work interactively.
+
+The agent ran overnight and opened a PR but you want to tweak it? Press `s` and you're in the same conversation with full context.
 
 ## Why it's small
 

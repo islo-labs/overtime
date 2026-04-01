@@ -1,9 +1,17 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useApp } from "ink";
 import { Scheduler } from "./scheduler.js";
 import type { JobState } from "./scheduler.js";
 import { Dashboard } from "./ui.js";
 
-export function App({ scheduler }: { scheduler: Scheduler }) {
+export function App({
+  scheduler,
+  onResume,
+}: {
+  scheduler: Scheduler;
+  onResume: (sessionId: string, jobName: string) => void;
+}) {
+  const { exit } = useApp();
   const [jobs, setJobs] = useState<JobState[]>(scheduler.getJobs());
 
   useEffect(() => {
@@ -41,9 +49,28 @@ export function App({ scheduler }: { scheduler: Scheduler }) {
     [scheduler]
   );
 
+  const handleResumeJob = useCallback(
+    (name: string) => {
+      const sessionId = scheduler.getSessionId(name);
+      if (!sessionId) return;
+      exit();
+      // Defer to after Ink unmounts
+      setTimeout(() => onResume(sessionId, name), 100);
+    },
+    [scheduler, exit, onResume]
+  );
+
   const handleQuit = useCallback(() => {
     scheduler.stop();
   }, [scheduler]);
 
-  return <Dashboard jobs={jobs} onRunJob={handleRunJob} onDeleteJob={handleDeleteJob} onQuit={handleQuit} />;
+  return (
+    <Dashboard
+      jobs={jobs}
+      onRunJob={handleRunJob}
+      onDeleteJob={handleDeleteJob}
+      onResumeJob={handleResumeJob}
+      onQuit={handleQuit}
+    />
+  );
 }
