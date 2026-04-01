@@ -8,6 +8,12 @@ import { parseToCron } from "./cron.js";
 export const SUPPORTED_AGENTS = ["claude"] as const;
 export type SupportedAgent = (typeof SUPPORTED_AGENTS)[number];
 
+const McpServerSchema = z.object({
+  command: z.string().min(1),
+  args: z.array(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
+});
+
 const JobSchema = z.object({
   name: z
     .string()
@@ -22,6 +28,10 @@ const JobSchema = z.object({
   timeout: z.number().positive().default(300),
   workdir: z.string().optional(),
   env: z.record(z.string(), z.string()).optional(),
+  mcp: z.union([
+    z.string(),
+    z.record(z.string(), McpServerSchema),
+  ]).optional(),
 });
 
 const ConfigSchema = z

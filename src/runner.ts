@@ -1,4 +1,7 @@
 import { spawn } from "node:child_process";
+import { writeFileSync, unlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { JobConfig, Credentials } from "./config.js";
 
 export interface JobResult {
@@ -21,6 +24,18 @@ export function runJob(
 
     if (job.model) args.push("--model", job.model);
     if (job.maxBudget) args.push("--max-turns", "50");
+
+    // MCP server config
+    let tempMcpFile: string | undefined;
+    if (job.mcp) {
+      if (typeof job.mcp === "string") {
+        args.push("--mcp-config", job.mcp);
+      } else {
+        tempMcpFile = join(tmpdir(), `overtime-mcp-${Date.now()}.json`);
+        writeFileSync(tempMcpFile, JSON.stringify({ mcpServers: job.mcp }));
+        args.push("--mcp-config", tempMcpFile);
+      }
+    }
 
     args.push(job.task);
 
@@ -56,6 +71,9 @@ export function runJob(
 
     child.on("close", (code: number | null) => {
       clearTimeout(timer);
+      if (tempMcpFile) {
+        try { unlinkSync(tempMcpFile); } catch { /* ignore */ }
+      }
       const durationMs = Date.now() - start;
 
       // Try to parse JSON output for metadata
@@ -82,6 +100,9 @@ export function runJob(
 
     child.on("error", (err) => {
       clearTimeout(timer);
+      if (tempMcpFile) {
+        try { unlinkSync(tempMcpFile); } catch { /* ignore */ }
+      }
       resolve({
         success: false,
         output: "",
