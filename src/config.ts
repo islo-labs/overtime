@@ -5,6 +5,9 @@ import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 import { parseToCron } from "./cron.js";
 
+export const SUPPORTED_AGENTS = ["claude"] as const;
+export type SupportedAgent = (typeof SUPPORTED_AGENTS)[number];
+
 const JobSchema = z.object({
   name: z
     .string()
@@ -12,7 +15,7 @@ const JobSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Job name must be lowercase alphanumeric with dashes"),
   schedule: z.string(),
   task: z.string().min(1),
-  agent: z.string().default("claude"),
+  agent: z.enum(SUPPORTED_AGENTS).default("claude"),
   notify: z.enum(["slack"]).optional(),
   model: z.string().optional(),
   maxBudget: z.number().positive().optional(),
@@ -25,7 +28,7 @@ const ConfigSchema = z
   .object({
     defaults: z
       .object({
-        agent: z.string().optional(),
+        agent: z.enum(SUPPORTED_AGENTS).optional(),
         timeout: z.number().positive().optional(),
         notify: z.enum(["slack"]).optional(),
       })

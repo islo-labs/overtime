@@ -30,7 +30,7 @@ export function runJob(
     if (credentials?.linearApiKey) credEnv.LINEAR_API_KEY = credentials.linearApiKey;
     if (credentials?.anthropicApiKey) credEnv.ANTHROPIC_API_KEY = credentials.anthropicApiKey;
 
-    const child = spawn("claude", args, {
+    const child = spawn(job.agent, args, {
       cwd: job.workdir ?? process.cwd(),
       env: { ...process.env, ...credEnv, ...job.env },
       stdio: ["ignore", "pipe", "pipe"],
