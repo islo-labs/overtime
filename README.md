@@ -112,6 +112,8 @@ jobs:
     model: sonnet       # optional — Claude model to use
     timeout: 300        # optional — max seconds (default: 300)
     workdir: ./myrepo   # optional — working directory for the agent
+    mcpConfig: ~/.mcp/servers.json    # optional — MCP server config file(s) to pass to the agent
+    strictMcpConfig: true             # optional — ignore all other MCP configs, use only mcpConfig
 ```
 
 ## Skills

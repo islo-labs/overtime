@@ -21,6 +21,11 @@ export function runJob(
 
     if (job.model) args.push("--model", job.model);
     if (job.maxBudget) args.push("--max-turns", "50");
+    if (job.mcpConfig) {
+      const configs = Array.isArray(job.mcpConfig) ? job.mcpConfig : [job.mcpConfig];
+      args.push("--mcp-config", ...configs);
+    }
+    if (job.strictMcpConfig) args.push("--strict-mcp-config");
 
     args.push(job.task);
 

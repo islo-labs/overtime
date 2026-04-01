@@ -19,6 +19,8 @@ const JobSchema = z.object({
   timeout: z.number().positive().default(300),
   workdir: z.string().optional(),
   env: z.record(z.string(), z.string()).optional(),
+  mcpConfig: z.union([z.string(), z.array(z.string())]).optional(),
+  strictMcpConfig: z.boolean().optional(),
 });
 
 const ConfigSchema = z
@@ -28,6 +30,8 @@ const ConfigSchema = z
         agent: z.string().optional(),
         timeout: z.number().positive().optional(),
         notify: z.enum(["slack"]).optional(),
+        mcpConfig: z.union([z.string(), z.array(z.string())]).optional(),
+        strictMcpConfig: z.boolean().optional(),
       })
       .optional(),
     jobs: z.array(JobSchema).min(1, "At least one job is required"),
@@ -120,6 +124,12 @@ export function loadConfig(configPath?: string): OvertimeConfig {
       }
       if (defaults.notify && !job.notify) {
         job.notify = defaults.notify;
+      }
+      if (defaults.mcpConfig && !job.mcpConfig) {
+        job.mcpConfig = defaults.mcpConfig;
+      }
+      if (defaults.strictMcpConfig && !job.strictMcpConfig) {
+        job.strictMcpConfig = defaults.strictMcpConfig;
       }
     }
   }
