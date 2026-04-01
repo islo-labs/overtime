@@ -2,7 +2,7 @@ import { program } from "commander";
 import { loadConfig, loadCredentials } from "./config.js";
 import { Scheduler } from "./scheduler.js";
 import { runJob } from "./runner.js";
-import { notifySlack } from "./notify.js";
+import { notifySlack, notifyJira } from "./notify.js";
 
 program
   .name("overtime")
@@ -71,6 +71,8 @@ program
 
     if (job.notify === "slack") {
       await notifySlack(jobName, result, credentials);
+    } else if (job.notify === "jira") {
+      await notifyJira(jobName, result, credentials);
     }
 
     process.exit(result.success ? 0 : 1);

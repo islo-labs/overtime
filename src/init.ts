@@ -46,6 +46,22 @@ export async function init() {
 
   console.log();
 
+  // JIRA
+  console.log("  4. JIRA (create issues when jobs complete or fail)");
+  console.log("     Create an API token at: https://id.atlassian.com/manage-profile/security/api-tokens\n");
+  const jiraBaseUrl = await ask(rl, "  JIRA base URL (e.g. https://mycompany.atlassian.net, enter to skip): ");
+  if (jiraBaseUrl) {
+    creds.jiraBaseUrl = jiraBaseUrl;
+    const jiraEmail = await ask(rl, "  JIRA email: ");
+    if (jiraEmail) creds.jiraEmail = jiraEmail;
+    const jiraApiToken = await ask(rl, "  JIRA API token: ");
+    if (jiraApiToken) creds.jiraApiToken = jiraApiToken;
+    const jiraProjectKey = await ask(rl, "  JIRA project key (e.g. OPS): ");
+    if (jiraProjectKey) creds.jiraProjectKey = jiraProjectKey;
+  }
+
+  console.log();
+
   // Save credentials
   if (Object.keys(creds).length > 0) {
     mkdirSync(CRED_DIR, { recursive: true });
@@ -61,7 +77,7 @@ export async function init() {
   if (existsSync(configPath)) {
     console.log(`  overtime.yml already exists, skipping.\n`);
   } else {
-    console.log("  4. Let's create your first job.\n");
+    console.log("  5. Let's create your first job.\n");
 
     const name = (await ask(rl, "  Job name (e.g. pr-review): ")) || "my-job";
     const schedule =
@@ -71,7 +87,8 @@ export async function init() {
       (await ask(rl, "  What should the agent do?\n     ")) ||
       "Review open PRs in this repo and leave comments";
 
-    const notify = slackUrl ? "\n    notify: slack" : "";
+    const notifyValue = slackUrl ? "slack" : jiraBaseUrl ? "jira" : "";
+    const notify = notifyValue ? `\n    notify: ${notifyValue}` : "";
 
     const yml = `jobs:
   - name: ${name}

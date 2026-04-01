@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import cron from "node-cron";
 import type { JobConfig, Credentials } from "./config.js";
 import { runJob, type JobResult } from "./runner.js";
-import { notifySlack } from "./notify.js";
+import { notifySlack, notifyJira } from "./notify.js";
 import { nextRun } from "./cron.js";
 
 export type JobStatus = "idle" | "running" | "done" | "error";
@@ -166,6 +166,8 @@ export class Scheduler {
 
       if (state.config.notify === "slack") {
         notifySlack(name, result, this.credentials).catch(() => {});
+      } else if (state.config.notify === "jira") {
+        notifyJira(name, result, this.credentials).catch(() => {});
       }
     } catch (err) {
       state.status = "error";

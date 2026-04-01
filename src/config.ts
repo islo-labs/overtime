@@ -13,7 +13,7 @@ const JobSchema = z.object({
   schedule: z.string(),
   task: z.string().min(1),
   agent: z.string().default("claude"),
-  notify: z.enum(["slack"]).optional(),
+  notify: z.enum(["slack", "jira"]).optional(),
   model: z.string().optional(),
   maxBudget: z.number().positive().optional(),
   timeout: z.number().positive().default(300),
@@ -27,7 +27,7 @@ const ConfigSchema = z
       .object({
         agent: z.string().optional(),
         timeout: z.number().positive().optional(),
-        notify: z.enum(["slack"]).optional(),
+        notify: z.enum(["slack", "jira"]).optional(),
       })
       .optional(),
     jobs: z.array(JobSchema).min(1, "At least one job is required"),
@@ -50,6 +50,10 @@ export interface Credentials {
   linearApiKey?: string;
   slackWebhookUrl?: string;
   anthropicApiKey?: string;
+  jiraBaseUrl?: string;
+  jiraEmail?: string;
+  jiraApiToken?: string;
+  jiraProjectKey?: string;
 }
 
 export function loadCredentials(): Credentials {
@@ -70,6 +74,10 @@ export function loadCredentials(): Credentials {
     linearApiKey: process.env.LINEAR_API_KEY ?? stored.linearApiKey,
     slackWebhookUrl: process.env.SLACK_WEBHOOK_URL ?? stored.slackWebhookUrl,
     anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? stored.anthropicApiKey,
+    jiraBaseUrl: process.env.JIRA_BASE_URL ?? stored.jiraBaseUrl,
+    jiraEmail: process.env.JIRA_EMAIL ?? stored.jiraEmail,
+    jiraApiToken: process.env.JIRA_API_TOKEN ?? stored.jiraApiToken,
+    jiraProjectKey: process.env.JIRA_PROJECT_KEY ?? stored.jiraProjectKey,
   };
 }
 
