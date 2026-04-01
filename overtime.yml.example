@@ -1,0 +1,21 @@
+# overtime.yml — Cron for AI agents
+# Env vars: ANTHROPIC_API_KEY, SLACK_WEBHOOK_URL (optional), GITHUB_TOKEN (optional)
+
+defaults:
+  notify: slack
+
+jobs:
+  - name: pr-review
+    schedule: "0 9 * * *"        # 9am daily
+    task: "Review open PRs in this repo and leave comments"
+    model: sonnet
+    maxBudget: 0.50
+
+  - name: dep-updates
+    schedule: "0 2 * * MON"      # Monday 2am
+    task: "Update dependencies, run tests, open PR if passing"
+
+  - name: bug-triage
+    schedule: "0 */4 * * *"      # Every 4 hours
+    task: "Check Linear for bugs labeled 'needs-triage', add priority labels"
+    notify: slack
