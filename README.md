@@ -8,6 +8,7 @@ jobs:
   - name: pr-review
     schedule: "every day at 9am"
     task: "Review open PRs in this repo and leave comments"
+    notify: slack
 
   - name: dep-updates
     schedule: "every monday at 2am"
@@ -16,6 +17,7 @@ jobs:
   - name: bug-triage
     schedule: "every 4 hours"
     task: "Check Linear for bugs labeled 'needs-triage', add priority labels"
+    notify: slack
 ```
 
 ```
@@ -79,6 +81,7 @@ jobs:
   - name: my-job        # lowercase, alphanumeric, dashes
     schedule: "every day at 9am"
     task: "What the agent should do"
+    notify: slack       # optional — Slack notification on completion
     model: sonnet       # optional — Claude model to use
     timeout: 300        # optional — max seconds (default: 300)
     workdir: ./myrepo   # optional — working directory for the agent
