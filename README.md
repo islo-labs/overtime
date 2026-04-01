@@ -121,19 +121,6 @@ shifts:
     workdir: ./myrepo   # optional — working directory for the agent
 ```
 
-## Skills
-
-itsovertime is designed to be extended with Claude Code skills — not by adding features to the core.
-
-Want to add something? Ask Claude to do it:
-
-- *"Add Cursor as an agent option"* — Claude modifies `runner.ts`
-- *"Add a `logs` command that shows past shift output"* — Claude adds a command to `index.ts`
-- *"Support Discord webhook notifications"* — Claude adds a notify function
-- *"Add a shift that runs on git push instead of a schedule"* — Claude wires up a file watcher
-
-The codebase is 9 files and ~600 lines. Small enough that Claude (or you) can read the whole thing, understand it, and change it confidently. That's the point — the code *is* the configuration layer.
-
 ## How it works
 
 itsovertime is a single Node.js process that:
