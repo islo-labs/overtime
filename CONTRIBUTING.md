@@ -4,11 +4,13 @@ overtime is intentionally small. The goal is a codebase you can read in one sitt
 
 ## Philosophy
 
-**Skills over features.** Instead of adding config options and abstraction layers, modify the source directly. A 10-line change to `runner.ts` that adds Cursor support is better than a 200-line plugin system.
+**The agent is the integration layer.** overtime doesn't need a GitHub client, Linear SDK, or Slack library. The agent already knows how to use those. overtime just schedules and watches. If you're about to add an integration, ask yourself: can the agent just do this as part of its task?
+
+**Skills over features.** The preferred way to extend overtime is with Claude Code skills — small, focused modifications to the source. A 10-line change to `runner.ts` that adds Cursor support is better than a 200-line plugin system. Submit skills, not frameworks.
 
 **No abstraction without repetition.** Don't add interfaces, registries, or factories for things that exist once. Three similar lines are better than a premature abstraction.
 
-**The whole thing is 8 files.** Try to keep it that way. If a change needs a new file, it should be worth the added complexity.
+**The whole thing is 9 files.** Try to keep it that way. If a change needs a new file, it should be worth the added complexity.
 
 ## Project structure
 
@@ -28,47 +30,40 @@ src/
 ## Development
 
 ```bash
-# Install dependencies
-npm install
-
-# Run in dev mode (no build step)
-npm run dev
-
-# Type check
-npx tsc --noEmit
-
-# Build
-npm run build
+npm install          # install dependencies
+npm run dev          # run without building
+npx tsc --noEmit     # type check
+npm run build        # build for distribution
 ```
 
 ## Making changes
 
-1. Fork and clone the repo
+1. Fork and clone
 2. Make your change
-3. Run `npx tsc --noEmit` to type-check
-4. Run `npm run build` to verify the build
-5. Test manually with a real `overtime.yml`
-6. Open a PR with a clear description of what and why
+3. `npx tsc --noEmit` to type-check
+4. `npm run build` to verify
+5. Test with a real `overtime.yml`
+6. PR with a clear description of what and why
 
-## What makes a good contribution
+## Good contributions
 
 - **Bug fixes** — always welcome
 - **New schedule patterns** — add to `parseToCron()` in `cron.ts`
-- **New notification targets** — add a function to `notify.ts`, wire it in `scheduler.ts`
-- **Agent support** — modify `runner.ts` to support a new CLI (Cursor, Codex, etc.)
-- **TUI improvements** — better layout, more keybinds, new views
+- **Agent support** — modify `runner.ts` to support a new CLI
+- **TUI improvements** — better layout, keybinds, views
+- **Skills** — self-contained changes that others can apply to their fork
 
 ## What to avoid
 
-- Adding abstraction layers (adapter interfaces, plugin systems, registries)
-- Adding dependencies for things Node.js can do natively
+- Abstraction layers (adapter interfaces, plugin systems, registries)
+- Dependencies for things Node.js or the agent can do natively
 - Config options for things that should be code changes
+- Integration clients (GitHub, Linear, Slack) — the agent handles those
 - Features that make the codebase harder to read in one sitting
 
 ## Code style
 
-- TypeScript, strict mode
-- ESM (`"type": "module"`)
+- TypeScript, strict mode, ESM
 - No comments unless the logic isn't self-evident
 - Functions over classes where possible
 - Let the types do the documenting

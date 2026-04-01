@@ -8,7 +8,6 @@ jobs:
   - name: pr-review
     schedule: "every day at 9am"
     task: "Review open PRs in this repo and leave comments"
-    notify: slack
 
   - name: dep-updates
     schedule: "every monday at 2am"
@@ -17,7 +16,6 @@ jobs:
   - name: bug-triage
     schedule: "every 4 hours"
     task: "Check Linear for bugs labeled 'needs-triage', add priority labels"
-    notify: slack
 ```
 
 ```
@@ -37,17 +35,24 @@ $ npx overtime
 ## Getting started
 
 ```bash
-npx overtime init
-```
-
-This walks you through connecting GitHub, Linear, and Slack, then creates your first `overtime.yml`. No env vars to manage — credentials are stored in `~/.overtime/credentials.json`.
-
-Then:
-
-```bash
-npx overtime          # start the dashboard
+npx overtime init    # connect GitHub, Linear, Slack — creates overtime.yml
+npx overtime         # start the dashboard
 npx overtime run pr-review  # test a single job
 ```
+
+## Why it's small
+
+overtime does exactly one thing: run `claude --print <task>` on a schedule and show you what happened.
+
+It doesn't have GitHub integrations, Linear clients, or Slack SDKs. It doesn't need them. The agent already knows how to use `gh`, call APIs, and post to Slack. You just tell it what to do in plain English:
+
+```yaml
+- name: notify-slack
+  schedule: "every day at 9am"
+  task: "Review open PRs and post a summary to #dev in Slack"
+```
+
+Claude handles the rest. overtime is just the clock.
 
 ## Schedules
 
@@ -58,7 +63,7 @@ Write schedules in plain English. No cron syntax needed.
 | `every hour` | Top of every hour |
 | `every 15 minutes` | Every 15 minutes |
 | `every day at 9am` | Daily at 9:00 AM |
-| `every weekday at 9:30am` | Mon–Fri at 9:30 AM |
+| `every weekday at 9:30am` | Mon-Fri at 9:30 AM |
 | `every monday at 2pm` | Mondays at 2:00 PM |
 | `every weekend at 10am` | Sat & Sun at 10:00 AM |
 | `hourly` | Same as `every hour` |
@@ -70,45 +75,40 @@ Standard cron expressions (`0 9 * * *`) also work if you prefer them.
 
 ```yaml
 # overtime.yml
-
-defaults:
-  notify: slack         # notify on all jobs by default
-  timeout: 600          # seconds before killing a job
-
 jobs:
   - name: my-job        # lowercase, alphanumeric, dashes
     schedule: "every day at 9am"
     task: "What the agent should do"
-    notify: slack       # optional — send Slack notification on completion
     model: sonnet       # optional — Claude model to use
-    timeout: 300        # optional — override default timeout (seconds)
+    timeout: 300        # optional — max seconds (default: 300)
     workdir: ./myrepo   # optional — working directory for the agent
 ```
 
-## Credentials
+## Skills
 
-`overtime init` stores credentials in `~/.overtime/credentials.json` (file mode 600, never committed to git).
+overtime is designed to be extended with Claude Code skills — not by adding features to the core.
 
-You can also use environment variables — they take precedence over stored credentials:
+Want to add something? Ask Claude to do it:
 
-| Env var | Used for |
-|---|---|
-| `ANTHROPIC_API_KEY` | Claude API access |
-| `GITHUB_TOKEN` | Passed to agent for GitHub operations |
-| `LINEAR_API_KEY` | Passed to agent for Linear operations |
-| `SLACK_WEBHOOK_URL` | Job completion notifications |
+- *"Add Cursor as an agent option"* — Claude modifies `runner.ts`
+- *"Add a `logs` command that shows past job output"* — Claude adds a command to `index.ts`
+- *"Support Discord webhook notifications"* — Claude adds a notify function
+- *"Add a job that runs on git push instead of a schedule"* — Claude wires up a file watcher
+
+The codebase is 9 files and ~600 lines. Small enough that Claude (or you) can read the whole thing, understand it, and change it confidently. That's the point — the code *is* the configuration layer.
+
+This is the same approach as [nanoclaw](https://github.com/qwibitai/nanoclaw): contributors submit skills, not features.
 
 ## How it works
 
 overtime is a single Node.js process that:
 
-1. Reads `overtime.yml` and parses schedules
-2. Runs a cron loop — when a job fires, it spawns `claude --print` with the task
-3. Tracks job state and shows it in a live TUI
-4. Sends notifications when jobs complete
-5. Prevents overlap — if a job is still running when its next cron fires, it skips
+1. Reads `overtime.yml` and parses natural language schedules into cron
+2. Runs a cron loop — when a job fires, spawns `claude --print` with the task
+3. Shows job state in a live TUI dashboard
+4. Prevents overlap — if a job is still running when its next cron fires, it skips
 
-The entire codebase is 8 files and ~600 lines. Read it in one sitting.
+That's it. No daemon, no database, no queue. One process, one config file.
 
 ## Requirements
 
@@ -117,13 +117,10 @@ The entire codebase is 8 files and ~600 lines. Read it in one sitting.
 
 ## Design philosophy
 
-Borrowed from [nanoclaw](https://github.com/qwibitai/nanoclaw):
-
-- **One process, handful of files** — small enough to understand completely
-- **No plugin systems** — Claude is the agent. Want to add another? Edit `runner.ts`
-- **No config wizards** — `overtime init` gets you started, then edit YAML
-- **Skills over features** — extend by modifying the source, not adding config options
-- **Understandable** — anyone can read the full source and know exactly what it does
+- **The agent is the integration layer.** overtime doesn't talk to GitHub, Linear, or Slack. The agent does. overtime just schedules and watches.
+- **One process, handful of files.** Small enough to understand completely. Read the whole source in one sitting.
+- **Skills over features.** New capabilities come from Claude Code skills that modify the source — not config options, plugin systems, or abstraction layers.
+- **No magic.** It reads YAML, runs cron, spawns a CLI, and draws a table. You can trace the entire flow in 10 minutes.
 
 ## License
 
