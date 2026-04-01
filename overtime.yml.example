@@ -15,3 +15,8 @@ jobs:
     schedule: "every 4 hours"
     task: "Check Linear for bugs labeled 'needs-triage', add priority labels"
     notify: slack
+
+  - name: terminal-bench
+    schedule: "every 2 hours"
+    task: "Run terminal-bench, capture the results, and post a summary to Slack"
+    notify: slack
