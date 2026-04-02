@@ -71,7 +71,7 @@ function StatusBar({ mode }: { mode: "table" | "output" }) {
   if (mode === "output") {
     return (
       <Box marginTop={1}>
-        <Text dimColor>[esc] back  [q] quit</Text>
+        <Text dimColor>[r] run  [s] resume session  [esc] back  [q] quit</Text>
       </Box>
     );
   }
@@ -145,6 +145,13 @@ export function Dashboard({
 
     if (mode === "output") {
       if (key.escape || key.return) setMode("table");
+      else if (input === "r") {
+        const s = shifts[selectedIndex];
+        if (s && s.status !== "running") onRun(s.config.name);
+      } else if (input === "s") {
+        const s = shifts[selectedIndex];
+        if (s) onResume(s.config.name);
+      }
       return;
     }
 
