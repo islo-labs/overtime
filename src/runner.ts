@@ -20,7 +20,7 @@ export function runShift(
 ): Promise<JobResult> {
   return new Promise((resolve) => {
     const start = Date.now();
-    const args = ["--print", "--verbose", "--output-format", "stream-json"];
+    const args = ["--print", "--verbose", "--output-format", "stream-json", "--dangerously-skip-permissions"];
 
     if (job.model) args.push("--model", job.model);
     if (job.maxBudget) args.push("--max-budget-usd", String(job.maxBudget));
