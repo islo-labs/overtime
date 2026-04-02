@@ -25,12 +25,24 @@ export function runShift(
     if (job.model) args.push("--model", job.model);
     if (job.maxBudget) args.push("--max-budget-usd", String(job.maxBudget));
 
-    args.push(job.task);
-
+    // Build context prefix so Claude knows what's available
+    const context: string[] = [];
     const credEnv: Record<string, string> = {};
-    if (credentials?.githubToken) credEnv.GITHUB_TOKEN = credentials.githubToken;
-    if (credentials?.linearApiKey) credEnv.LINEAR_API_KEY = credentials.linearApiKey;
-    if (credentials?.anthropicApiKey) credEnv.ANTHROPIC_API_KEY = credentials.anthropicApiKey;
+
+    if (credentials?.githubToken) {
+      credEnv.GITHUB_TOKEN = credentials.githubToken;
+      context.push("GITHUB_TOKEN is set. Use the gh CLI for GitHub (install with `brew install gh` or `apt install gh` if not present).");
+    }
+    if (credentials?.linearApiKey) {
+      credEnv.LINEAR_API_KEY = credentials.linearApiKey;
+      context.push("LINEAR_API_KEY is set. Use the Linear REST/GraphQL API directly with this key.");
+    }
+    if (credentials?.anthropicApiKey) {
+      credEnv.ANTHROPIC_API_KEY = credentials.anthropicApiKey;
+    }
+
+    const prefix = context.length > 0 ? context.join("\n") + "\n\nTask: " : "";
+    args.push(prefix + job.task);
 
     const child = spawn("claude", args, {
       cwd: job.workdir ?? process.cwd(),
