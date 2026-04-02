@@ -88,7 +88,7 @@ export function loadConfig(configPath?: string): CronaiConfig & { configPath: st
 
   if (!found) {
     console.error(
-      `No config file found. Run "cronai init" to get started, or create cronai.yml manually.`
+      `No config file found. Run "cron-ai init" to get started, or create cronai.yml manually.`
     );
     process.exit(1);
   }

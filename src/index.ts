@@ -47,7 +47,7 @@ function ensureDaemon(configPath?: string) {
 }
 
 program
-  .name("cronai")
+  .name("cron-ai")
   .description("Cron for AI agents")
   .version("0.1.3")
   .option("-c, --config <path>", "Path to config file");
@@ -133,7 +133,7 @@ program
 // Init wizard
 program
   .command("init")
-  .description("Set up cronai: connect services and create config")
+  .description("Set up cron-ai: connect services and create config")
   .action(async () => {
     const { init } = await import("./init.js");
     await init();

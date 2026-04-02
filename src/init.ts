@@ -75,8 +75,8 @@ export async function init() {
   }
 
   console.log("  You're all set! Run:\n");
-  console.log("    cronai              # start the dashboard");
-  console.log("    cronai run pr-review # test a cron now\n");
+  console.log("    cron-ai             # start the dashboard");
+  console.log("    cron-airun pr-review # test a cron now\n");
 
   rl.close();
 }
