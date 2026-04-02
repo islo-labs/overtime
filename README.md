@@ -70,23 +70,30 @@ $ npx itsovertime
 └───────────────────────────────────────────────────────────────┘
 ```
 
+The scheduler runs in the background — close the TUI and your shifts keep running. Reopen it anytime to check status.
+
 ## Getting started
 
 ```bash
 npx itsovertime init           # connect GitHub, Linear, Slack — creates overtime.yml
-npx itsovertime                # start the dashboard
+npx itsovertime                # start dashboard (auto-starts background scheduler)
 npx itsovertime run pr-review  # test a single shift
+npx itsovertime stop           # stop the background scheduler
 ```
+
+## Live output
+
+Press `enter` on any shift to see its output. While a shift is running, output streams in real-time — watch Claude think, read files, and run commands as it happens.
 
 ## Resume sessions
 
-When a shift finishes, press `s` to drop into the Claude session where it left off. This lets you inspect what the agent did, ask follow-up questions, or continue the work interactively.
+Press `s` on any shift — running or completed — to drop into the Claude session interactively. This lets you inspect what the agent did, ask follow-up questions, or continue the work.
 
 The agent ran overnight and opened a PR but you want to tweak it? Press `s` and you're in the same conversation with full context.
 
 ## Why it's small
 
-itsovertime does exactly one thing: run `claude --print <task>` on a schedule and show you what happened.
+itsovertime does exactly one thing: run Claude on a schedule and show you what happened.
 
 It doesn't have GitHub integrations, Linear clients, or Slack SDKs. It doesn't need them. The agent already knows how to use `gh`, call APIs, and post to Slack. You just tell it what to do in plain English. itsovertime is just the clock.
 
@@ -117,21 +124,19 @@ shifts:
     task: "What the agent should do"
     notify: slack       # optional — Slack notification on completion
     model: sonnet       # optional — Claude model to use
-    timeout: 300        # optional — max seconds (default: 300)
+    timeout: 3600       # optional — max seconds (default: 3600 / 1 hour)
     workdir: ./myrepo   # optional — working directory for the agent
 ```
 
 ## How it works
 
-itsovertime is a single Node.js process that:
+itsovertime runs a background scheduler that fires shifts on their cron schedules. The TUI is just a viewer — open and close it anytime.
 
-1. Reads `overtime.yml` and parses natural language schedules into cron
-2. Runs a cron loop — when a shift fires, spawns `claude --print` with the task
-3. Shows shift state in a live TUI dashboard
-4. Sends a Slack notification when shifts complete
-5. Prevents overlap — if a shift is still running when its next cron fires, it skips
-
-That's it. No daemon, no database, no queue. One process, one config file.
+1. `npx itsovertime` starts the scheduler as a background daemon (if not already running) and opens the TUI
+2. When a shift fires, it spawns `claude --print` with streaming output
+3. The TUI connects via Unix socket for real-time state updates
+4. Shift history and logs persist to `~/.itsovertime/` across restarts
+5. Overlap prevention — if a shift is still running when its next cron fires, it skips
 
 ## Requirements
 
@@ -142,7 +147,7 @@ That's it. No daemon, no database, no queue. One process, one config file.
 
 - **The agent is the integration layer.** itsovertime doesn't talk to GitHub, Linear, or Slack. The agent does. itsovertime just schedules and watches.
 - **One process, handful of files.** Small enough to understand completely. Read the whole source in one sitting.
-- **Small by design.** New capabilities come from modifying the source — not config options, plugin systems, or abstraction layers. The whole codebase is 9 files.
+- **Small by design.** New capabilities come from modifying the source — not config options, plugin systems, or abstraction layers.
 - **No magic.** It reads YAML, runs cron, spawns a CLI, and draws a table. You can trace the entire flow in 10 minutes.
 
 ## License
