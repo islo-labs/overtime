@@ -19,25 +19,24 @@ export async function init() {
 
   const creds: Record<string, string> = {};
 
-  console.log("  1. GitHub (so agents can open PRs, review code, etc.)");
-  console.log("     Create a token at: https://github.com/settings/tokens");
-  console.log("     Scopes needed: repo, read:org\n");
-  const ghToken = await ask(rl, "  GitHub token (enter to skip): ");
-  if (ghToken) creds.githubToken = ghToken;
-
-  console.log();
-
-  console.log("  2. Linear (so agents can triage bugs, create issues, etc.)");
-  console.log("     Create a key at: https://linear.app/settings/api\n");
-  const linearKey = await ask(rl, "  Linear API key (enter to skip): ");
-  if (linearKey) creds.linearApiKey = linearKey;
-
-  console.log();
-
-  console.log("  3. Slack notifications (get notified when shifts finish)");
+  // Slack — the only integration overtime itself uses
+  console.log("  1. Slack notifications (get notified when shifts finish)");
   console.log("     Create a webhook at: https://api.slack.com/messaging/webhooks\n");
   const slackUrl = await ask(rl, "  Slack webhook URL (enter to skip): ");
   if (slackUrl) creds.slackWebhookUrl = slackUrl;
+
+  console.log();
+
+  // GitHub/Linear — passed to the agent as env vars
+  // Skip if user already has MCP servers or gh CLI configured
+  console.log("  2. API tokens (skip if you use MCP servers or have gh CLI set up)");
+  console.log("     These are passed to Claude as env vars so it can call APIs directly.\n");
+
+  const ghToken = await ask(rl, "  GitHub token (enter to skip): ");
+  if (ghToken) creds.githubToken = ghToken;
+
+  const linearKey = await ask(rl, "  Linear API key (enter to skip): ");
+  if (linearKey) creds.linearApiKey = linearKey;
 
   console.log();
 
@@ -53,7 +52,7 @@ export async function init() {
   if (existsSync(configPath)) {
     console.log(`  overtime.yml already exists, skipping.\n`);
   } else {
-    console.log("  4. Let's create your first shift.\n");
+    console.log("  3. Let's create your first shift.\n");
 
     const name = (await ask(rl, "  Shift name (e.g. pr-review): ")) || "pr-review";
     const schedule =
