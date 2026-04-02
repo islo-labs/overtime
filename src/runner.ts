@@ -19,7 +19,7 @@ export function runShift(
 ): Promise<JobResult> {
   return new Promise((resolve) => {
     const start = Date.now();
-    const args = ["--print"];
+    const args = ["--print", "--output-format", "stream-json"];
 
     if (job.model) args.push("--model", job.model);
     if (job.maxBudget) args.push("--max-turns", "50");
@@ -38,13 +38,52 @@ export function runShift(
       signal,
     });
 
-    let stdout = "";
+    let output = "";
     let stderr = "";
+    let sessionId: string | undefined;
+    let costUsd: number | undefined;
 
     child.stdout.on("data", (chunk: Buffer) => {
       const text = chunk.toString();
-      stdout += text;
-      onOutput?.(text);
+      // Parse stream-json: each line is a JSON event
+      for (const line of text.split("\n")) {
+        if (!line.trim()) continue;
+        try {
+          const event = JSON.parse(line);
+
+          // Extract text content from assistant messages
+          if (event.type === "assistant" && event.message?.content) {
+            for (const block of event.message.content) {
+              if (block.type === "text" && block.text) {
+                output += block.text;
+                onOutput?.(block.text);
+              }
+            }
+          }
+
+          // Extract text from content_block_delta (streaming chunks)
+          if (event.type === "content_block_delta" && event.delta?.text) {
+            output += event.delta.text;
+            onOutput?.(event.delta.text);
+          }
+
+          // Extract session ID and cost from result
+          if (event.type === "result") {
+            sessionId = event.session_id ?? event.sessionId;
+            costUsd = event.cost_usd ?? event.cost;
+            if (event.result) {
+              output += event.result;
+              onOutput?.(event.result);
+            }
+          }
+        } catch {
+          // Not valid JSON line, append raw
+          if (line.trim()) {
+            output += line;
+            onOutput?.(line);
+          }
+        }
+      }
     });
 
     child.stderr.on("data", (chunk: Buffer) => {
@@ -60,14 +99,14 @@ export function runShift(
 
     child.on("close", (code: number | null) => {
       clearTimeout(timer);
-      const durationMs = Date.now() - start;
-
       resolve({
         success: code === 0,
-        output: stdout,
+        output,
         error: stderr || undefined,
-        durationMs,
+        durationMs: Date.now() - start,
         exitCode: code,
+        cost: costUsd,
+        sessionId,
       });
     });
 
