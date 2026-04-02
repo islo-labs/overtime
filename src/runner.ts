@@ -19,7 +19,7 @@ export function runShift(
 ): Promise<JobResult> {
   return new Promise((resolve) => {
     const start = Date.now();
-    const args = ["--print", "--output-format", "json"];
+    const args = ["--print"];
 
     if (job.model) args.push("--model", job.model);
     if (job.maxBudget) args.push("--max-turns", "50");
@@ -62,27 +62,12 @@ export function runShift(
       clearTimeout(timer);
       const durationMs = Date.now() - start;
 
-      let output = stdout;
-      let cost: number | undefined;
-      let sessionId: string | undefined;
-
-      try {
-        const parsed = JSON.parse(stdout);
-        output = parsed.result ?? parsed.content ?? stdout;
-        cost = parsed.cost_usd ?? parsed.cost;
-        sessionId = parsed.session_id ?? parsed.sessionId;
-      } catch {
-        // Not JSON, use raw stdout
-      }
-
       resolve({
         success: code === 0,
-        output,
+        output: stdout,
         error: stderr || undefined,
         durationMs,
         exitCode: code,
-        cost,
-        sessionId,
       });
     });
 
