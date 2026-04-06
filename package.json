@@ -1,6 +1,6 @@
 {
   "name": "cron-ai",
-  "version": "0.1.3",
+  "version": "0.1.6",
   "description": "Cron for AI agents",
   "type": "module",
   "bin": {
